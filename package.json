@@ -1,0 +1,19 @@
+{
+  "name": "alpha-sud-crm-arena",
+  "version": "1.0.0",
+  "description": "CRM gamifié pour cabinet de courtage en assurance, connecté à Pipedrive",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "demo": "DEMO_MODE=1 node server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
