@@ -13,6 +13,7 @@ XP à la synchronisation suivante.
 
 | Écran | Contenu |
 | --- | --- |
+| 🏢 **Cabinet** (écran d'accueil) | **Cabinet virtuel en vue isométrique 3D**, blanc et rouge : chaque pipeline Pipedrive est une zone du bâtiment (accueil & salle d'attente, plateau conseillers, salle de signature, cellule recouvrement, archives à rayonnages, atelier sinistres, parking des contrats signés), chaque étape un emplacement, chaque affaire un objet (prospect dans la salle d'attente, dossier sur un bureau, boîte de contrat sur une étagère colorée selon l'échéance, véhicule à l'atelier). On **glisse un dossier d'une étape à l'autre** (écrit dans Pipedrive), on clique pour afficher la **frise de suivi** du dossier en bas, double-clic pour la fiche. Recherche globale, indicateurs flottants (dossiers à jour, primes signées ce mois vs objectif, progression XP), panneau d'occupation au survol d'une zone, zoom et panoramique. Les affaires en sommeil portent un marqueur rouge « ! ». |
 | 🏠 **QG** | Avatar, niveau, barre d'XP, série de jours actifs, missions du jour (+30 XP) et mission hebdo (+150 XP), KPI (pipeline pondéré, gagné ce mois, taux de conversion, affaires en sommeil, impayés, échéances < 90 j, agenda), classement de la semaine, badges, flux d'activité. |
 | 🧭 **Pipeline** | Kanban **drag & drop** pour vos 4 pipelines Pipedrive (Commerciale, Alertes impayés, Portefeuille & échéances, Sinistres). Cartes avec type de garantie, assureur, prime, prochaine activité ; affaires « pourries » signalées 🧟. Création d'affaire (+ client / entreprise). |
 | 📅 **Agenda** | Activités en retard / du jour / à venir. Cocher = terminé dans Pipedrive (+10 à +25 XP). Création d'activité. |
@@ -63,6 +64,7 @@ Variables d'environnement (`.env`) :
 | `SYNC_INTERVAL` | Intervalle de synchronisation en secondes (60 par défaut, min 30). |
 | `DEMO_MODE` | `1` pour lancer avec des données fictives, sans Pipedrive. |
 | `DATA_DIR` | Dossier de persistance de la gamification (`./data` par défaut). |
+| `MONTHLY_TARGET` | Objectif mensuel de primes signées affiché dans le cabinet virtuel (10 000 € par défaut). |
 
 ### Mode démo
 
@@ -92,7 +94,10 @@ server/
                    séries, classement ; persistance JSON dans data/
   fields.js        Clés des champs personnalisés du cabinet
 public/
-  index.html, css/style.css, js/app.js (vues), js/api.js, js/confetti.js, js/util.js
+  index.html, css/style.css (thème clair blanc/rouge)
+  js/app.js (vues QG, pipeline, agenda, portefeuille, trophées, fiche affaire)
+  js/cabinet.js (cabinet virtuel isométrique en SVG : scène, dépôt, recherche, frise)
+  js/api.js, js/confetti.js, js/util.js
 test/
   gamification.test.js   `npm test`
 ```

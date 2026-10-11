@@ -1,8 +1,9 @@
 import { api } from './api.js';
 import { confetti } from './confetti.js';
+import { renderCabinet, bindCabinet, cabinetBusy } from './cabinet.js';
 import { esc, eur, eur2, fmtDate, fmtDateTime, today, daysBetween, daysUntil, initials, money, relTime, ACT_ICONS, ACT_LABELS, LOST_REASONS } from './util.js';
 
-const S = { boot: null, state: null, view: 'qg', pipeline: null, drawer: null, notes: {}, sort: { key: 'echeance', dir: 1 }, polling: null, busy: false };
+const S = { boot: null, state: null, view: 'cabinet', pipeline: null, drawer: null, notes: {}, sort: { key: 'echeance', dir: 1 }, polling: null, busy: false };
 const $ = (sel, root = document) => root.querySelector(sel);
 const F = () => S.boot.fieldKeys.deal;
 
@@ -98,12 +99,29 @@ function levelUpModal(lvl) {
 // ------------------------------------------------------------------ Rendu général
 function render() {
   if (!S.state) return;
+  if (cabinetBusy()) return; // un dossier est en cours de déplacement : on ne redessine pas
   renderProfile();
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.view === S.view));
-  const views = { qg: renderQG, pipeline: renderPipeline, agenda: renderAgenda, portefeuille: renderPortefeuille, trophees: renderTrophees };
-  $('#view').innerHTML = (views[S.view] || renderQG)();
-  if (S.view === 'pipeline') bindKanban();
+  const view = $('#view');
+  if (S.view === 'cabinet') {
+    view.className = 'view wide';
+    view.innerHTML = renderCabinet(cabinetCtx());
+    bindCabinet(cabinetCtx());
+  } else {
+    view.className = 'view';
+    const views = { qg: renderQG, pipeline: renderPipeline, agenda: renderAgenda, portefeuille: renderPortefeuille, trophees: renderTrophees };
+    view.innerHTML = (views[S.view] || renderQG)();
+    if (S.view === 'pipeline') bindKanban();
+  }
   if (S.drawer) renderDrawer();
+}
+
+// Contexte partagé avec le cabinet virtuel
+function cabinetCtx() {
+  return {
+    boot: S.boot, state: S.state, m: S.m, cf, rottenDays, garantie, assureur, echeance, prime, contactName, pipeKind, openDeal,
+    moveDeal: (id, stage) => mutate(() => api.updateDeal(id, { stage_id: stage })),
+  };
 }
 
 function renderProfile() {
@@ -524,7 +542,7 @@ document.addEventListener('submit', async (e) => {
       if (r) { S.notes[id] = (await api.notes(id).catch(() => ({ notes: S.notes[id] }))).notes || []; renderDrawer(); }
       break;
     }
-    case 'deal': { const r = await mutate(() => api.createDeal(data)); if (r) { closeModal(); S.view = 'pipeline'; S.pipeline = Number(data.pipeline_id); location.hash = '#/pipeline'; render(); openDeal(r.result.id); } break; }
+    case 'deal': { const r = await mutate(() => api.createDeal(data)); if (r) { closeModal(); S.pipeline = Number(data.pipeline_id); if (S.view !== 'cabinet') { S.view = 'pipeline'; location.hash = '#/pipeline'; } render(); openDeal(r.result.id); } break; }
     case 'activity': { const r = await mutate(() => api.createActivity(data)); if (r) closeModal(); break; }
     case 'lose': { const r = await mutate(() => api.updateDeal(form.dataset.id, { status: 'lost', lost_reason: data.lost_reason })); if (r) closeModal(); break; }
   }
@@ -533,8 +551,8 @@ document.addEventListener('submit', async (e) => {
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeDrawer(); } });
 
 function route() {
-  const v = (location.hash.replace('#/', '') || 'qg').split('/')[0];
-  S.view = ['qg', 'pipeline', 'agenda', 'portefeuille', 'trophees'].includes(v) ? v : 'qg';
+  const v = (location.hash.replace('#/', '') || 'cabinet').split('/')[0];
+  S.view = ['cabinet', 'qg', 'pipeline', 'agenda', 'portefeuille', 'trophees'].includes(v) ? v : 'cabinet';
   render();
 }
 addEventListener('hashchange', route);

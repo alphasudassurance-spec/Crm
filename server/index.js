@@ -89,7 +89,7 @@ app.get('/api/bootstrap', wrap(async (req, res) => {
   res.json({
     mode: client.mode, me: ref.me, users: ref.users, pipelines: ref.pipelines, stages: ref.stages, fields: ref.fields,
     fieldKeys: { deal: DEAL_FIELDS, org: ORG_FIELDS }, xpRules: XP_RULES, badges: BADGES.map(({ check, ...b }) => b),
-    syncInterval: SYNC_INTERVAL,
+    syncInterval: SYNC_INTERVAL, monthlyTarget: Number(process.env.MONTHLY_TARGET) || 10000,
   });
 }));
 
